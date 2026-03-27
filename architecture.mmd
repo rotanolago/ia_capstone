@@ -1,0 +1,53 @@
+graph TD
+    subgraph "User Interface"
+        A[Command Line Interface<br/>python explain.py "question"]
+    end
+
+    subgraph "Application Layer"
+        B[explain.py<br/>Main explainer script]
+        C[populate_vector_db.py<br/>Vector DB populator]
+        D[store_in_db.py<br/>SQLite data manager]
+    end
+
+    subgraph "AI/ML Layer"
+        E[Ollama API<br/>Local LLM Service<br/>Model: llama3.1:8b]
+        F[SentenceTransformer<br/>Text Embedding Model<br/>all-MiniLM-L6-v2]
+    end
+
+    subgraph "Data Storage Layer"
+        G[ChromaDB<br/>Vector Database<br/>Semantic Search]
+        H[SQLite Database<br/>manuales_ai.db<br/>Raw Man Pages]
+    end
+
+    subgraph "External Dependencies"
+        I[Python Virtual Environment]
+        J[Ollama Server<br/>localhost:11434]
+    end
+
+    A --> B
+    B --> E
+    B --> F
+    B --> G
+    B --> H
+
+    C --> F
+    C --> G
+    C --> H
+
+    D --> H
+
+    B --> I
+    C --> I
+    D --> I
+    E --> J
+
+    style A fill:#e1f5fe
+    style B fill:#f3e5f5
+    style C fill:#f3e5f5
+    style D fill:#f3e5f5
+    style E fill:#fff3e0
+    style F fill:#fff3e0
+    style G fill:#e8f5e8
+    style H fill:#e8f5e8
+    style I fill:#fafafa
+    style J fill:#fafafa
