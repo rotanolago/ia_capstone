@@ -86,19 +86,23 @@ def rephrase_question(question):
         return question  # Fallback to original if rephrasing fails
 
 def verify_answer(context, question, answer):
-    prompt = f"Based on the following man page excerpts, is this answer to the question accurate and well-supported? Question: {question}\nAnswer: {answer}\n\nMan page excerpts:\n{context}\n\nRespond with 'YES' if accurate, 'NO' if not. Explanation:"
+    prompt = f"Based on the following man page excerpts, rate from 0 to 100 how accurate and well-supported is this answer to the question. Question: {question}\nAnswer: {answer}\n\nMan page excerpts:\n{context}\n\nRespond with only a number from 0 to 100, nothing else."
     data = {
         "model": OLLAMA_MODEL,
         "prompt": prompt,
         "stream": False,
-        "options": {"temperature": 0.1}  # Low temperature for factual check
+        "options": {"temperature": 0.1}
     }
     response = requests.post("http://localhost:11434/api/generate", json=data)
     if response.status_code == 200:
-        result = response.json()["response"].strip().upper()
-        return result.startswith("YES")
+        result = response.json()["response"].strip()
+        try:
+            score = int(result)
+        except ValueError:
+            score = 0
+        return score
     else:
-        return False  # Assume not verified if error
+        return 0  # Assume 0 if error
 
 def extract_command_with_llm(question):
     prompt = f"Extract the Unix command from this question about Unix commands. Return only the command name, nothing else: {question}\n\nCommand:"
@@ -149,20 +153,23 @@ def main():
     for attempt in range(3):
         current_question = optimized_question if attempt == 0 else rephrase_question(optimized_question)
         print(f"\nAttempt {attempt + 1}: Using question: {current_question}")
-        
+
         print("Generating answer...")
         try:
             answer = generate_explanation(context, current_question)
         except Exception as e:
             print(f"Error generating answer: {e}")
             sys.exit(1)
-        
+
         print("Verifying answer against man page...")
-        if verify_answer(context, current_question, answer):
+        quality_score = verify_answer(context, current_question, answer)
+        if quality_score >= 80:
             print("Answer verified as accurate.")
             print(answer)
             return  # Exit after successful verification
-        
+        else:
+            print(f"Prompt answer quality: {quality_score}%")
+
         print("Answer not accurate enough. Rephrasing question..." if attempt < 2 else "Answer not accurate after 3 attempts.")
     
     print("I don't know.")

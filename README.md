@@ -25,6 +25,8 @@ cd /path/to/ia_capstone
 python -m venv ia_capstone
 # Activate the venv (Windows PowerShell)
 ./ia_capstone/Scripts/Activate.ps1
+# MacOS
+source ia_capstone/bin/activate
 
 # Install dependencies
 python -m pip install -r requirements.txt
